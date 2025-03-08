@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey Validation System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #2ecc71;
+            --dark: #2d3748;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .btn:hover {
+            background-color: #3051d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .scanner-container {
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #scanner {
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--primary);
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+        
+        .scanner-line {
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background-color: var(--success);
+            animation: scan 2s infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+        
+        .cancel-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .cancel-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .success-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--light);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .success-message {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--success);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .checkmark-container {
+            width: 150px;
+            height: 150px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 30px rgba(46, 204, 113, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+            }
+        }
+        
+        .checkmark {
+            width: 80px;
+            height: 40px;
+            border-right: 10px solid white;
+            border-bottom: 10px solid white;
+            transform: rotate(45deg) translate(-5px, -5px);
+        }
+        
+        .reset-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reset-btn:hover {
+            background-color: #3051d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        @media (max-width: 600px) {
+            .success-message {
+                font-size: 28px;
+                padding: 0 20px;
+            }
+            
+            .checkmark-container {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .checkmark {
+                width: 60px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Temple Journey Validation</h1>
+        <button class="btn" id="scanButton">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" style="margin-right: 10px; vertical-align: middle;" viewBox="0 0 16 16">
+                <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1h-3zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5zM.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5zM3 4.5a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-7zm3 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7z"/>
+            </svg>
+            Scan Barcode
+        </button>
+    </div>
+    
+    <div class="scanner-container" id="scannerContainer">
+        <div id="scanner">
+            <div class="scanner-overlay">
+                <div class="scanner-line"></div>
+            </div>
+        </div>
+        <button class="cancel-btn" id="cancelScan">Cancel</button>
+    </div>
+    
+    <div class="success-screen" id="successScreen">
+        <div class="success-message">Valid Journey!</div>
+        <div class="checkmark-container">
+            <div class="checkmark"></div>
+        </div>
+        <button class="reset-btn" id="resetButton">Scan Again</button>
+    </div>
+    
+    <!-- Audio element for success sound -->
+    <audio id="successSound" preload="auto">
+        <source src="1.mp3" type="audio/mp3">
+        <!-- Fallback success sound -->
+        <source src="1.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const scanButton = document.getElementById('scanButton');
+            const cancelScan = document.getElementById('cancelScan');
+            const resetButton = document.getElementById('resetButton');
+            const scannerContainer = document.getElementById('scannerContainer');
+            const successScreen = document.getElementById('successScreen');
+            const successSound = document.getElementById('successSound');
+            
+            // Start barcode scanner
+            scanButton.addEventListener('click', function() {
+                scannerContainer.style.display = 'flex';
+                
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector("#scanner"),
+                        constraints: {
+                            width: 480,
+                            height: 320,
+                            facingMode: "environment"
+                        },
+                    },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
+                    },
+                    numOfWorkers: 2,
+                    decoder: {
+                        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "codabar_reader", "upc_reader", "upc_e_reader"]
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        console.error("Error initializing Quagga:", err);
+                        alert("Camera access error. Please try again or use a different device.");
+                        scannerContainer.style.display = 'none';
+                        return;
+                    }
+                    Quagga.start();
+                });
+                
+                Quagga.onDetected(function(result) {
+                    // Stop scanner
+                    stopScanner();
+                    
+                    // Show success screen
+                    showSuccessScreen();
+                });
+            });
+            
+            // Cancel scanning
+            cancelScan.addEventListener('click', function() {
+                stopScanner();
+            });
+            
+            // Reset button
+            resetButton.addEventListener('click', function() {
+                successScreen.style.display = 'none';
+            });
+            
+            // Stop the scanner
+            function stopScanner() {
+                Quagga.stop();
+                scannerContainer.style.display = 'none';
+            }
+            
+            // Show success screen
+            function showSuccessScreen() {
+                // Play success sound
+                playSuccessSound();
+                
+                // Show success screen
+                successScreen.style.display = 'flex';
+            }
+            
+            // Play success sound
+            function playSuccessSound() {
+                // Reset the audio to the beginning
+                successSound.currentTime = 0;
+                
+                // Play the sound
+                successSound.play().catch(function(error) {
+                    console.log("Audio playback failed: ", error);
+                    // Some browsers require user interaction before playing audio
+                    // We'll handle this gracefully by continuing without sound
+                });
+            }
+        });
+    </script>
+</body>
+</html>
